@@ -28,7 +28,7 @@ def process_job(job_id: str):
 
             try:
                 # Monkey-patching point for tests: renderer should raise exception to test partial failures
-                file_path = generate_certificate(record.name, job.event_name, job.issue_date)
+                file_path = generate_certificate(record.name, job.event_name, job.issue_date, record.certificate_code)
                 
                 record.status = models.RecordStatus.SUCCESS
                 record.file_path = file_path

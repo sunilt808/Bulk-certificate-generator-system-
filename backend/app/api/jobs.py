@@ -69,3 +69,53 @@ def get_job_status(job_id: str, db: Session = Depends(get_db)):
 def list_job_recipients(job_id: str, db: Session = Depends(get_db)):
     records = db.query(models.CertificateRecord).filter(models.CertificateRecord.job_id == job_id).all()
     return records
+
+import os
+from fastapi.responses import FileResponse
+import zipfile
+import tempfile
+
+@router.get("/{job_id}/download-all")
+def download_all_certificates(job_id: str, db: Session = Depends(get_db)):
+    job = db.query(models.GenerationJob).filter(models.GenerationJob.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    records = db.query(models.CertificateRecord).filter(
+        models.CertificateRecord.job_id == job_id,
+        models.CertificateRecord.status == models.RecordStatus.SUCCESS
+    ).all()
+    
+    if not records:
+        raise HTTPException(status_code=404, detail="No successful certificates found to download")
+        
+    # Create a temporary zip file
+    temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+    with zipfile.ZipFile(temp_zip.name, 'w') as zipf:
+        for record in records:
+            if record.file_path and os.path.exists(record.file_path):
+                # Add file to zip, using the recipient's name for the filename
+                arcname = f"{record.name.replace(' ', '_')}_{record.certificate_code}.pdf"
+                zipf.write(record.file_path, arcname=arcname)
+                
+    return FileResponse(
+        temp_zip.name,
+        media_type="application/zip",
+        filename=f"certificates_{job_id}.zip",
+        background=None  # We should normally clean this up using a background task
+    )
+
+@router.get("/certificates/{certificate_code}/download")
+def download_certificate(certificate_code: str, db: Session = Depends(get_db)):
+    record = db.query(models.CertificateRecord).filter(models.CertificateRecord.certificate_code == certificate_code).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+        
+    if record.status != models.RecordStatus.SUCCESS or not record.file_path or not os.path.exists(record.file_path):
+        raise HTTPException(status_code=404, detail="Certificate file not available")
+        
+    return FileResponse(
+        record.file_path,
+        media_type="application/pdf",
+        filename=f"{record.name.replace(' ', '_')}_certificate.pdf"
+    )

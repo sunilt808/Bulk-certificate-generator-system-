@@ -14,7 +14,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Bulk Certificate Generator", lifespan=lifespan)
 
+from app.api import verify
+
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
+app.include_router(verify.router, prefix="/verify", tags=["Verification"])
 
 @app.get("/health")
 def health_check():
