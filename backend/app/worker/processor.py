@@ -51,7 +51,10 @@ def process_job(job_id: str) -> None:
                 record.file_path = file_path
             except Exception as exc:
                 record.status = models.RecordStatus.FAILED
-                record.error_code = "RENDER_ERROR"
+                if type(exc).__name__ == "UnsupportedCharactersError":
+                    record.error_code = "UNSUPPORTED_CHARACTERS"
+                else:
+                    record.error_code = "RENDER_ERROR"
                 record.error_message = str(exc)
                 has_failures = True
             finally:

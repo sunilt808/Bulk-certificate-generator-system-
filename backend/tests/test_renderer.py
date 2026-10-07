@@ -33,13 +33,20 @@ def test_certificate_non_trivial_size(tmp_path):
     assert size > 5000, f"File seems too small: {size} bytes"
 
 
-def test_long_name_does_not_crash(tmp_path):
-    long_name = "A" * 100  # max allowed
+def test_long_name_shrinks_and_does_not_crash(tmp_path):
+    long_name = "A" * 100  # max allowed by API
     path = generate_certificate(long_name, "Event", "2026-10-07", "CERT-2026-ABCDEF")
     assert os.path.exists(path)
 
 
 def test_unicode_devanagari_name_does_not_crash(tmp_path):
-    """Pillow's default font may not render Devanagari glyphs, but must not crash."""
+    """Devanagari script should pick NotoSansDevanagari and render without error."""
     path = generate_certificate("अर्जुन शर्मा", "Event", "2026-10-07", "CERT-2026-ABCDEF")
     assert os.path.exists(path)
+
+
+def test_unsupported_character_raises_error(tmp_path):
+    from app.rendering.renderer import UnsupportedCharactersError
+    # Chinese character, should fail because we only bundled Latin and Devanagari
+    with pytest.raises(UnsupportedCharactersError):
+        generate_certificate("汉", "Event", "2026-10-07", "CERT-2026-ABCDEF")

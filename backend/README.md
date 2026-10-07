@@ -12,7 +12,7 @@ with embedded QR codes, and tracks per-record success and failure.
 | API | FastAPI 0.111+ |
 | Database | SQLite via SQLAlchemy 2.0 |
 | Background work | FastAPI `BackgroundTasks` (in-process thread) |
-| PDF rendering | Pillow + qrcode |
+| PDF rendering | Pillow + qrcode + Bundled NotoSans/Devanagari fonts |
 | Validation | Pydantic v2 + email-validator |
 | Tests | pytest + TestClient (httpx) |
 
