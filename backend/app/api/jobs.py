@@ -4,6 +4,7 @@ import zipfile
 import tempfile
 import csv
 import io
+from datetime import datetime, timezone
 from email_validator import validate_email, EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response
@@ -344,4 +345,26 @@ def retry_failed_certificates(
     background_tasks.add_task(process_job, job_id)
 
     # Return current status (counts reflect the reset)
+    return get_job_status(job_id, db)
+
+
+@router.post("/{job_id}/cancel", response_model=schemas.JobStatusResponse)
+def cancel_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+):
+    """Cancel a pending or active job before all records finish rendering."""
+    job = db.query(models.GenerationJob).filter(models.GenerationJob.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if job.status not in (models.JobStatus.PENDING, models.JobStatus.PROCESSING):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Job cannot be cancelled from status {job.status}",
+        )
+
+    job.status = models.JobStatus.CANCELLED
+    job.finished_at = datetime.now(timezone.utc)
+    db.commit()
     return get_job_status(job_id, db)

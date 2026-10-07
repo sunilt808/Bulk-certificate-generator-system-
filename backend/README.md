@@ -222,6 +222,16 @@ Resets only records with `error_code=RENDER_ERROR` back to `PENDING` and re-runs
 the processor. Validation failures (`INVALID_EMAIL`, `INVALID_NAME`) are never
 retried — the data is still wrong.
 
+### Cancel a job
+
+```bash
+curl -X POST http://localhost:8000/api/v1/jobs/3f7b2c1a-.../cancel
+```
+
+Cancellation is available for `PENDING` and `PROCESSING` jobs. It prevents
+future pending records from being claimed; a render already in progress may
+finish. Terminal jobs return `409`.
+
 ---
 
 ## Design decisions

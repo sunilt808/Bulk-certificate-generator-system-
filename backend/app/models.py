@@ -11,6 +11,7 @@ class JobStatus(str, enum.Enum):
     COMPLETED = "COMPLETED"
     COMPLETED_WITH_ERRORS = "COMPLETED_WITH_ERRORS"
     FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 class RecordStatus(str, enum.Enum):
     PENDING = "PENDING"

@@ -24,6 +24,7 @@ workload grows.
 - Atomic PDF writes using temporary files and `os.replace`
 - Safe UUID-based filenames that never contain user input
 - Retry endpoint for failed render records
+- Job cancellation for pending or active work
 - Startup recovery for persisted `PENDING` and interrupted `PROCESSING` jobs
 - SQLite WAL mode for better reader concurrency
 - Bounded worker batches for large jobs
@@ -188,6 +189,15 @@ Only render failures are retried. Input-validation failures are not retried
 because the submitted data is still invalid. There is no automatic retry
 system; the client explicitly calls this endpoint by design.
 
+### 6. Cancel a job
+
+```bash
+curl -X POST http://localhost:8000/api/v1/jobs/{job_id}/cancel
+```
+
+Pending records are not claimed after cancellation. A job that has already
+reached a terminal status cannot be cancelled.
+
 ## Request lifecycle
 
 1. `POST /api/v1/jobs` validates the request envelope and each recipient.
@@ -224,6 +234,8 @@ system; the client explicitly calls this endpoint by design.
   configurable batch size keeps memory bounded for large jobs.
 - Set `API_KEY` to require an API key on job routes. Authentication is
   disabled when blank; `/health`, `/docs`, and `/verify` remain public.
+- Cancellation stops future worker claims but does not interrupt a render
+  already in progress.
 - Devanagari conjunct shaping depends on optional Pillow Raqm support. The
   fonts are bundled, but complex conjuncts are not guaranteed to shape
   correctly when Raqm is unavailable.

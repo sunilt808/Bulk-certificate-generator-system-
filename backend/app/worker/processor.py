@@ -32,6 +32,10 @@ def process_job(job_id: str) -> None:
         has_failures = False
 
         while True:
+            db.refresh(job)
+            if job.status == models.JobStatus.CANCELLED:
+                return
+
             records = (
                 db.query(models.CertificateRecord)
                 .filter(
@@ -82,6 +86,10 @@ def process_job(job_id: str) -> None:
                     # Commit per-record so a crash mid-batch leaves partial results,
                     # not a rollback of all completed records.
                     db.commit()
+
+        db.refresh(job)
+        if job.status == models.JobStatus.CANCELLED:
+            return
 
         # Check if any previously-failed validation records exist (not render failures)
         any_failed = (
