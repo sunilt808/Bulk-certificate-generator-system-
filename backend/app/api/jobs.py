@@ -2,8 +2,10 @@ import os
 import re
 import zipfile
 import tempfile
+import csv
+import io
 from email_validator import validate_email, EmailNotValidError
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -134,6 +136,51 @@ def create_job(
         media_type="application/json",
         headers={"Location": f"/api/v1/jobs/{db_job.id}"},
     )
+
+
+@router.post("/upload", status_code=202)
+def upload_job(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    event_name: Optional[str] = Form(None),
+    issue_date: Optional[str] = Form(None),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+):
+    content = file.file.read(settings.CSV_MAX_BYTES + 1)
+    if len(content) > settings.CSV_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="CSV file is too large")
+
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=422, detail="CSV must be UTF-8 encoded")
+
+    reader = csv.DictReader(io.StringIO(text))
+    if reader.fieldnames is None or set(reader.fieldnames) != {"name", "email"}:
+        raise HTTPException(status_code=422, detail="CSV must contain name and email columns")
+
+    recipients = []
+    for row in reader:
+        recipients.append(
+            schemas.RecipientCreate(
+                name=row.get("name") or "",
+                email=row.get("email") or "",
+            )
+        )
+
+    try:
+        job_in = schemas.JobCreate(
+            title=title,
+            event_name=event_name,
+            issue_date=issue_date,
+            recipients=recipients,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    return create_job(job_in, background_tasks, idempotency_key, db)
 
 
 @router.get("/{job_id}/recipients", response_model=List[schemas.RecordResponse])

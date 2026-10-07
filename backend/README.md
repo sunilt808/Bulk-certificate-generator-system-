@@ -112,6 +112,19 @@ curl -X POST http://localhost:8000/api/v1/jobs \
 ```
 Headers: `Location: /api/v1/jobs/3f7b2c1a-...`
 
+### Upload recipients as CSV
+
+```bash
+curl -X POST http://localhost:8000/api/v1/jobs/upload \
+  -F "title=Hackathon 2026" \
+  -F "event_name=Shadowfox Hackathon" \
+  -F "issue_date=2026-10-07" \
+  -F "file=@recipients.csv"
+```
+
+The CSV must be UTF-8 encoded and contain exactly `name,email` columns.
+Recipient validation and processing are the same as for JSON submissions.
+
 ---
 
 ### Poll job status

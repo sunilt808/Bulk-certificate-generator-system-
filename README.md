@@ -17,6 +17,7 @@ workload grows.
 - Bulk job creation with a 202 Accepted response
 - Per-recipient validation and partial-failure isolation
 - Idempotent submissions with `Idempotency-Key`
+- CSV uploads for spreadsheet-based recipient lists
 - Background PDF generation with per-record progress tracking
 - Bundled Noto Sans and Devanagari fonts
 - QR codes linking to a public certificate verification endpoint
@@ -135,6 +136,9 @@ blocking valid rows.
 ```bash
 curl http://localhost:8000/api/v1/jobs/{job_id}
 ```
+
+CSV submissions use `POST /api/v1/jobs/upload` with multipart form fields
+`title`, optional `event_name` and `issue_date`, plus a UTF-8 `name,email` file.
 
 The response reports total, processed, succeeded, failed, pending, and
 percentage-complete counts.

@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     MEDIA_ROOT: Path = Path("./media")
     MAX_RECIPIENTS_PER_JOB: int = 1000
     PROCESSING_BATCH_SIZE: int = 100
+    CSV_MAX_BYTES: int = 5 * 1024 * 1024
     # Used in QR code links printed on certificates
     BASE_URL: str = "http://localhost:8000"
 

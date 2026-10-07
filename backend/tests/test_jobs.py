@@ -40,6 +40,29 @@ def test_create_job_returns_202_with_location(client):
     assert data["id"] in r.headers["Location"]
 
 
+def test_csv_upload_creates_job(client):
+    response = client.post(
+        "/api/v1/jobs/upload",
+        data={"title": "CSV Job", "event_name": "CSV Event", "issue_date": "2026-10-07"},
+        files={"file": ("recipients.csv", "name,email\nAlice,alice@example.com\n,invalid\n", "text/csv")},
+    )
+
+    assert response.status_code == 202
+    assert response.json()["total"] == 2
+    assert response.json()["accepted"] == 1
+    assert response.json()["rejected"] == 1
+
+
+def test_csv_upload_requires_expected_columns(client):
+    response = client.post(
+        "/api/v1/jobs/upload",
+        data={"title": "CSV Job"},
+        files={"file": ("recipients.csv", "full_name,email\nAlice,alice@example.com\n", "text/csv")},
+    )
+
+    assert response.status_code == 422
+
+
 def test_create_job_mixed_valid_invalid(client, db):
     session, TestingSession, _ = db
     r = make_job(client, [
