@@ -103,6 +103,9 @@ Copy `.env.example` to `.env` in `backend/`:
 | `DATABASE_URL` | `sqlite:///./certificates.db` | SQLAlchemy database URL |
 | `MEDIA_ROOT` | `./media` | Directory for generated PDFs |
 | `MAX_RECIPIENTS_PER_JOB` | `1000` | Maximum recipients in one request |
+| `PROCESSING_BATCH_SIZE` | `100` | Maximum pending records loaded per worker batch |
+| `CSV_MAX_BYTES` | `5242880` | Maximum CSV upload size |
+| `API_KEY` | empty | Optional key required in `X-API-Key` for job endpoints |
 | `BASE_URL` | `http://localhost:8000` | Base URL embedded in QR links |
 
 Generated databases, media, PDFs, virtual environments, and `.env` files are
@@ -139,6 +142,12 @@ curl http://localhost:8000/api/v1/jobs/{job_id}
 
 CSV submissions use `POST /api/v1/jobs/upload` with multipart form fields
 `title`, optional `event_name` and `issue_date`, plus a UTF-8 `name,email` file.
+
+When `API_KEY` is configured, include it on job requests:
+
+```bash
+curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/v1/jobs/{job_id}
+```
 
 The response reports total, processed, succeeded, failed, pending, and
 percentage-complete counts.
@@ -205,6 +214,8 @@ system; the client explicitly calls this endpoint by design.
   processes or large simultaneous jobs require PostgreSQL.
 - Worker records are claimed atomically with a conditional update. The
   configurable batch size keeps memory bounded for large jobs.
+- Set `API_KEY` to require an API key on job routes. Authentication is
+  disabled when blank; `/health`, `/docs`, and `/verify` remain public.
 - Devanagari conjunct shaping depends on optional Pillow Raqm support. The
   fonts are bundled, but complex conjuncts are not guaranteed to shape
   correctly when Raqm is unavailable.

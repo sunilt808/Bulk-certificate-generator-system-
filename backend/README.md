@@ -40,6 +40,9 @@ Copy-Item .env.example .env
 `PROCESSING_BATCH_SIZE` defaults to `100` and bounds the number of pending
 records loaded by one worker batch.
 
+Set `API_KEY` to require `X-API-Key` on job creation, status, recipient,
+retry, and download endpoints. Leave it blank for local development.
+
 ## Run
 
 ```bash

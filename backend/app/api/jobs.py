@@ -14,8 +14,9 @@ from app import schemas, models
 from app.db import get_db
 from app.worker.processor import process_job
 from app.config import settings
+from app.security import require_api_key
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
 def _validate_recipient(name: str, email: str):
