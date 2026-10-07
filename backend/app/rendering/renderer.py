@@ -37,10 +37,11 @@ def generate_certificate(name: str, event_name: str, issue_date: str, certificat
     verify_url = f"http://localhost:8000/verify/{certificate_code}"
     qr.add_data(verify_url)
     qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
     
     # Paste QR Code on the bottom right
-    img.paste(qr_img, (img.width - qr_img.width - 50, img.height - qr_img.height - 50))
+    qr_width, qr_height = qr_img.size
+    img.paste(qr_img, (img.width - qr_width - 50, img.height - qr_height - 50))
         
     filename = f"{uuid.uuid4().hex}.pdf"
     filepath = settings.MEDIA_ROOT / filename
