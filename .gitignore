@@ -6,6 +6,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 **/.pytest_cache/
+.coverage
+*.coverage
+htmlcov/
 
 # Local configuration, databases, and generated output
 .env
@@ -20,6 +23,7 @@ media/
 *.temp
 *.log
 *.out
+*.zip
 company_reqt_extracted.txt
 
 # IDE and build output

@@ -12,6 +12,10 @@ FastAPI `BackgroundTasks` keep local development simple, while the application
 boundaries document the path to Celery, PostgreSQL, and object storage when the
 workload grows.
 
+The `feature/production-hardening` branch also includes atomic record claims,
+bounded processing, CSV uploads, Docker support, optional API-key protection,
+and GitHub Actions CI.
+
 ## Features
 
 - Bulk job creation with a 202 Accepted response
