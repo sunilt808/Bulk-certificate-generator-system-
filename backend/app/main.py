@@ -25,10 +25,14 @@ async def lifespan(app: FastAPI):
         if stuck:
             db.commit()
 
-        # Re-queue any job that still has PENDING records
+        # Re-queue jobs whose background dispatch was lost or interrupted.
         jobs_to_retry = (
             db.query(models.GenerationJob)
-            .filter(models.GenerationJob.status == models.JobStatus.PROCESSING)
+            .filter(
+                models.GenerationJob.status.in_(
+                    (models.JobStatus.PENDING, models.JobStatus.PROCESSING)
+                )
+            )
             .all()
         )
         for job in jobs_to_retry:

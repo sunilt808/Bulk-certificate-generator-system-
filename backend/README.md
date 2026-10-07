@@ -29,7 +29,10 @@ venv\Scripts\activate
 source venv/bin/activate
 
 pip install -r requirements.txt
-cp .env.example .env
+# Windows PowerShell
+Copy-Item .env.example .env
+# Linux/macOS (or Git Bash)
+# cp .env.example .env
 ```
 
 ## Run
@@ -44,6 +47,8 @@ uvicorn app.main:app --reload
 ```bash
 pytest -v
 ```
+
+Run these commands from `backend` after activating the virtual environment.
 
 ---
 
@@ -223,6 +228,15 @@ batch at the end. If the process crashes mid-batch:
 - Startup recovery only re-runs `PENDING` records (idempotent)
 - No silent data loss
 
+`process_job` opens its own `SessionLocal` because the request-scoped
+dependency session is closed as soon as the HTTP response is returned. The
+background task must therefore own and close a separate session.
+
+The explicit `Response(content=..., status_code=202)` in `create_job` is
+needed to serialize the response with `JobResponse`, set the `Location`
+header, and return the asynchronous-acceptance status. The idempotency path
+uses the same mechanism with status 200.
+
 ### Atomic file writes
 
 `generate_certificate` writes to a sibling temp file via `tempfile.mkstemp`,
@@ -241,11 +255,21 @@ record failed, `COMPLETED` if all succeeded.
 ## Known limitations
 
 - **In-process background work**: a long batch blocks the worker thread and can
-  delay HTTP responses. Under heavy load, spin up multiple Uvicorn workers
-  (`uvicorn app.main:app --workers 4`), but note SQLite has write contention.
+  delay HTTP responses. The queue is in RAM, so a process that exits before
+  `process_job` starts can lose the dispatch; startup recovery requeues
+  persisted `PENDING` and `PROCESSING` jobs. Use a durable worker system such
+  as Celery for stronger delivery guarantees.
 - **SQLite write concurrency**: WAL mode helps readers, but SQLite still allows
-  only one writer at a time. With multiple Uvicorn workers, per-record commits
-  can queue up.
+  only one writer at a time. Contention is low with WAL and short per-record
+  commits, but several worker processes or large simultaneous jobs can still
+  make PostgreSQL the scaling path.
+- **Concurrent processing claim**: there is no atomic claim step, so two
+  overlapping `process_job` calls for one job could select the same `PENDING`
+  record. The fix is an `UPDATE ... WHERE status='PENDING'` claim followed by
+  checking the affected row count.
+- **Devanagari shaping**: the bundled fonts are present, but if the installed
+  Pillow build has no Raqm support, complex conjuncts may render broken rather
+  than joined.
 - **Local disk storage**: files are stored on the server's disk. They're lost if
   the server is replaced or scaled out horizontally.
 
