@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-34%20passing-success)
+[![Tests](https://github.com/sunilt808/Bulk-certificate-generator-system-/actions/workflows/tests.yml/badge.svg)](https://github.com/sunilt808/Bulk-certificate-generator-system-/actions/workflows/tests.yml)
 
 A FastAPI service that accepts a batch of recipients and generates
 personalized PDF certificates with QR-code verification links.
