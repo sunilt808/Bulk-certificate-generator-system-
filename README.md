@@ -179,6 +179,9 @@ GET http://localhost:8000/verify/{certificate_code}
 
 The same verification URL is encoded in the certificate QR code.
 
+Job statuses include `PENDING`, `PROCESSING`, `COMPLETED`,
+`COMPLETED_WITH_ERRORS`, `FAILED`, and `CANCELLED`.
+
 ### 5. Retry failed renders
 
 ```bash
