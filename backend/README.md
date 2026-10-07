@@ -47,6 +47,13 @@ uvicorn app.main:app --reload
 # Docs available at http://localhost:8000/docs
 ```
 
+From the repository root, the same API can be started with Docker:
+
+```bash
+docker build -t bulk-certificates .
+docker run --rm -p 8000:8000 bulk-certificates
+```
+
 ## Run tests
 
 ```bash

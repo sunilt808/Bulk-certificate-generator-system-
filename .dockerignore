@@ -1,0 +1,22 @@
+.git/
+.github/
+.vscode/
+venv/
+**/venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+**/.pytest_cache/
+.env
+**/.env
+*.db
+*.db-wal
+*.db-shm
+media/
+**/media/
+*.pdf
+docs/
+company reqt/
+test.zip
+backend/gen_template.py

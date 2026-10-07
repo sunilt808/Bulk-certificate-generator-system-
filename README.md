@@ -67,6 +67,17 @@ pytest -v
 uvicorn app.main:app --reload
 ```
 
+### Docker
+
+```bash
+docker build -t bulk-certificates .
+docker run --rm -p 8000:8000 bulk-certificates
+```
+
+The container stores SQLite data and generated PDFs inside the container by
+default. Mount persistent storage and provide a production database URL when
+running beyond a local demonstration.
+
 The API will be available at:
 
 - Swagger UI: <http://localhost:8000/docs>
