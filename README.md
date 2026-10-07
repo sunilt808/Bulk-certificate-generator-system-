@@ -12,10 +12,6 @@ FastAPI `BackgroundTasks` keep local development simple, while the application
 boundaries document the path to Celery, PostgreSQL, and object storage when the
 workload grows.
 
-The `feature/production-hardening` branch also includes atomic record claims,
-bounded processing, CSV uploads, Docker support, optional API-key protection,
-and GitHub Actions CI.
-
 ## Features
 
 - Bulk job creation with a 202 Accepted response
@@ -115,6 +111,12 @@ Copy `.env.example` to `.env` in `backend/`:
 Generated databases, media, PDFs, virtual environments, and `.env` files are
 ignored by Git.
 
+When `API_KEY` is configured, include it on protected job requests:
+
+```bash
+curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/v1/jobs/{job_id}
+```
+
 ## API workflow
 
 ### 1. Create a job
@@ -138,19 +140,21 @@ The endpoint returns `202 Accepted` and a `Location` header. Valid recipients
 are stored as `PENDING`; invalid recipients are recorded as `FAILED` without
 blocking valid rows.
 
-### 2. Poll job status
-
-```bash
-curl http://localhost:8000/api/v1/jobs/{job_id}
-```
+### CSV upload
 
 CSV submissions use `POST /api/v1/jobs/upload` with multipart form fields
 `title`, optional `event_name` and `issue_date`, plus a UTF-8 `name,email` file.
 
-When `API_KEY` is configured, include it on job requests:
+```bash
+curl -X POST http://localhost:8000/api/v1/jobs/upload \
+  -F "title=Hackathon 2026" \
+  -F "file=@recipients.csv"
+```
+
+### 2. Poll job status
 
 ```bash
-curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/v1/jobs/{job_id}
+curl http://localhost:8000/api/v1/jobs/{job_id}
 ```
 
 The response reports total, processed, succeeded, failed, pending, and
@@ -265,7 +269,7 @@ certificate retrieval.
 | In-process background tasks | Celery or another durable worker queue |
 | SQLite single-writer behavior | PostgreSQL with atomic row claiming |
 | Local PDF files | S3/GCS-compatible object storage |
-| Large in-memory record batches | Paginated/chunked processing |
+| Larger-than-configured batches | Increase `PROCESSING_BATCH_SIZE` or use a durable worker queue |
 | Limited operational visibility | Structured logs, metrics, and tracing |
 
 See [`backend/README.md`](./backend/README.md) for detailed API examples and
