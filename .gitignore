@@ -16,6 +16,11 @@ __pycache__/
 media/
 **/media/
 *.pdf
+*.tmp
+*.temp
+*.log
+*.out
+company_reqt_extracted.txt
 
 # IDE and build output
 .vscode/
@@ -23,6 +28,7 @@ media/
 *.egg-info/
 dist/
 build/
+coverage.xml
 
 # Local-only artifacts
 company reqt/
