@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from sqlalchemy import update
 from app.db import SessionLocal
 from app import models
 from app.rendering.renderer import generate_certificate
@@ -27,21 +28,34 @@ def process_job(job_id: str) -> None:
             job.started_at = datetime.now(timezone.utc)
         db.commit()
 
-        # Only pick up PENDING records — SUCCESS records are already done
-        records = (
-            db.query(models.CertificateRecord)
-            .filter(
-                models.CertificateRecord.job_id == job_id,
-                models.CertificateRecord.status == models.RecordStatus.PENDING,
-            )
-            .all()
-        )
-
         has_failures = False
 
-        for record in records:
-            record.status = models.RecordStatus.PROCESSING
+        while True:
+            record = (
+                db.query(models.CertificateRecord)
+                .filter(
+                    models.CertificateRecord.job_id == job_id,
+                    models.CertificateRecord.status == models.RecordStatus.PENDING,
+                )
+                .order_by(models.CertificateRecord.row_index)
+                .first()
+            )
+            if not record:
+                break
+
+            claim = (
+                update(models.CertificateRecord)
+                .where(
+                    models.CertificateRecord.id == record.id,
+                    models.CertificateRecord.status == models.RecordStatus.PENDING,
+                )
+                .values(status=models.RecordStatus.PROCESSING)
+            )
+            claimed = db.execute(claim).rowcount
             db.commit()
+            if claimed != 1:
+                continue
+            db.refresh(record)
 
             try:
                 file_path = generate_certificate(

@@ -49,3 +49,31 @@ def test_stuck_processing_record_is_recovered(client, db, monkeypatch):
 
     session.refresh(record)
     assert record.status == models.RecordStatus.SUCCESS
+
+
+def test_reprocessing_completed_job_does_not_render_again(client, db, monkeypatch):
+    session, _, _ = db
+    job = models.GenerationJob(title="Claim Job", total=1)
+    session.add(job)
+    session.flush()
+    record = models.CertificateRecord(
+        job_id=job.id,
+        row_index=0,
+        name="Claimed User",
+        email="claimed@example.com",
+        status=models.RecordStatus.PENDING,
+    )
+    session.add(record)
+    session.commit()
+
+    calls = []
+
+    def fake_generate(*args):
+        calls.append(args)
+        return "certificate.pdf"
+
+    monkeypatch.setattr("app.worker.processor.generate_certificate", fake_generate)
+    process_job(job.id)
+    process_job(job.id)
+
+    assert len(calls) == 1
