@@ -28,3 +28,6 @@ build/
 company reqt/
 test.zip
 backend/gen_template.py
+
+# Local documentation
+docs/
