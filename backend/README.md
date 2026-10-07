@@ -20,6 +20,8 @@ with embedded QR codes, and tracks per-record success and failure.
 
 ## Setup
 
+From the repository root:
+
 ```bash
 cd backend
 python -m venv venv
@@ -49,6 +51,21 @@ pytest -v
 ```
 
 Run these commands from `backend` after activating the virtual environment.
+
+The repository includes the certificate template and the Noto Sans fonts under
+`app/rendering/`; no font download is required.
+
+## Verify the installation
+
+```bash
+curl http://localhost:8000/health
+```
+
+Expected response:
+
+```json
+{"status": "ok"}
+```
 
 ---
 
@@ -284,3 +301,11 @@ record failed, `COMPLETED` if all succeeded.
 | File storage | Upload PDFs to S3 (or GCS). Store the object key in `file_path` instead of a local path. |
 | Large batches | Chunk the insert loop into 100-row `INSERT`s. Use `bulk_insert_mappings` for speed. |
 | Observability | Add structured logging (structlog), Prometheus metrics on job/record status transitions. |
+
+## Repository contents
+
+- `app/` — FastAPI application, SQLAlchemy models, renderer, and worker
+- `app/rendering/fonts/` — bundled Latin and Devanagari fonts
+- `app/rendering/template.png` — certificate template
+- `tests/` — API, rendering, retry, recovery, and retrieval tests
+- `.env.example` — local configuration template

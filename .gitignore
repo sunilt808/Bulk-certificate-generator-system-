@@ -1,32 +1,30 @@
-# Python
+# Local Python environments and caches
 venv/
+**/venv/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-
-# Environment
-.env
-
-# Testing
+**/__pycache__/
+*.py[cod]
 .pytest_cache/
-.coverage
-htmlcov/
+**/.pytest_cache/
 
-# DB and media
+# Local configuration, databases, and generated output
+.env
+**/.env
 *.db
 *.db-wal
 *.db-shm
 media/
+**/media/
+*.pdf
 
-# IDE
+# IDE and build output
 .vscode/
 .idea/
+*.egg-info/
+dist/
+build/
 
-# Private docs
-review.md
-docs/company reqt/
+# Local-only artifacts
+company reqt/
+test.zip
+backend/gen_template.py
