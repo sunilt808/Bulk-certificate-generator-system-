@@ -3,7 +3,6 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-34%20passing-success)
-![License](https://img.shields.io/badge/license-private-lightgrey)
 
 A FastAPI service that accepts a batch of recipients and generates
 personalized PDF certificates with QR-code verification links.
@@ -228,7 +227,6 @@ certificate retrieval.
 │   ├── .env.example
 │   ├── README.md            # Detailed backend notes
 │   └── requirements.txt
-└── docs/                    # Local-only interview preparation notes
 ```
 
 ## Scaling path
