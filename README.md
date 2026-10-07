@@ -25,6 +25,7 @@ workload grows.
 - Retry endpoint for failed render records
 - Startup recovery for persisted `PENDING` and interrupted `PROCESSING` jobs
 - SQLite WAL mode for better reader concurrency
+- Bounded worker batches for large jobs
 - API, rendering, recovery, retry, and retrieval tests
 
 ## Technology
@@ -187,10 +188,8 @@ system; the client explicitly calls this endpoint by design.
   small deployment, but it is not a durable distributed queue.
 - WAL and short commits keep SQLite contention low, but multiple worker
   processes or large simultaneous jobs require PostgreSQL.
-- There is currently no atomic record-claim step. Two overlapping
-  `process_job` calls could select the same `PENDING` row. A production fix
-  would atomically update `PENDING` to `PROCESSING` and check the affected row
-  count.
+- Worker records are claimed atomically with a conditional update. The
+  configurable batch size keeps memory bounded for large jobs.
 - Devanagari conjunct shaping depends on optional Pillow Raqm support. The
   fonts are bundled, but complex conjuncts are not guaranteed to shape
   correctly when Raqm is unavailable.

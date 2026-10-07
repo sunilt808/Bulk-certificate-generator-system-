@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./certificates.db"
     MEDIA_ROOT: Path = Path("./media")
     MAX_RECIPIENTS_PER_JOB: int = 1000
+    PROCESSING_BATCH_SIZE: int = 100
     # Used in QR code links printed on certificates
     BASE_URL: str = "http://localhost:8000"
 

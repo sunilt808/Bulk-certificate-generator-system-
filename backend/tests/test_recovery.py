@@ -77,3 +77,33 @@ def test_reprocessing_completed_job_does_not_render_again(client, db, monkeypatc
     process_job(job.id)
 
     assert len(calls) == 1
+
+
+def test_large_job_is_processed_in_batches(client, db, monkeypatch):
+    session, _, _ = db
+    job = models.GenerationJob(title="Batch Job", total=5)
+    session.add(job)
+    session.flush()
+    for row_index in range(5):
+        session.add(
+            models.CertificateRecord(
+                job_id=job.id,
+                row_index=row_index,
+                name=f"User {row_index}",
+                email=f"user{row_index}@example.com",
+                status=models.RecordStatus.PENDING,
+            )
+        )
+    session.commit()
+
+    monkeypatch.setattr("app.worker.processor.settings.PROCESSING_BATCH_SIZE", 2)
+    monkeypatch.setattr(
+        "app.worker.processor.generate_certificate",
+        lambda *args: "certificate.pdf",
+    )
+
+    process_job(job.id)
+
+    assert session.query(models.CertificateRecord).filter_by(
+        job_id=job.id, status=models.RecordStatus.SUCCESS
+    ).count() == 5

@@ -37,6 +37,9 @@ Copy-Item .env.example .env
 # cp .env.example .env
 ```
 
+`PROCESSING_BATCH_SIZE` defaults to `100` and bounds the number of pending
+records loaded by one worker batch.
+
 ## Run
 
 ```bash
@@ -280,10 +283,10 @@ record failed, `COMPLETED` if all succeeded.
   only one writer at a time. Contention is low with WAL and short per-record
   commits, but several worker processes or large simultaneous jobs can still
   make PostgreSQL the scaling path.
-- **Concurrent processing claim**: there is no atomic claim step, so two
-  overlapping `process_job` calls for one job could select the same `PENDING`
-  record. The fix is an `UPDATE ... WHERE status='PENDING'` claim followed by
-  checking the affected row count.
+- **Concurrent processing claim**: each record is claimed with an `UPDATE ...
+  WHERE status='PENDING'` condition and the affected row count is checked.
+- **Bounded processing**: workers load at most `PROCESSING_BATCH_SIZE` pending
+  records at a time, keeping memory bounded for large jobs.
 - **Devanagari shaping**: the bundled fonts are present, but if the installed
   Pillow build has no Raqm support, complex conjuncts may render broken rather
   than joined.
